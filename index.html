@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>QGIS2leaf webmap</title>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+		<link rel="stylesheet" type="text/css" href="css/own_style.css">
+		<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+		<script src="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+		<script src="js/leaflet-hash.js"></script>
+		<script src="js/Autolinker.min.js"></script>
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+	</head>
+	<body>
+		<div id="map"></div>
+		<script src="data/exp_appenddata.js"></script>
+		<script>
+		var map = L.map('map', {
+			zoomControl:true, maxZoom:19
+		}).fitBounds([[35.3864159675,-134.56723457],[57.5291253965,-98.875664476]]);
+		var hash = new L.Hash(map);
+		var additional_attrib = 'created w. <a href="https://github.com/geolicious/qgis2leaf" target ="_blank">qgis2leaf</a> by <a href="http://www.geolicious.de" target ="_blank">Geolicious</a> & contributors<br>';
+		var feature_group = new L.featureGroup([]);
+		var raster_group = new L.LayerGroup([]);
+		var basemap_0 = L.tileLayer('http://a.tile.stamen.com/toner/{z}/{x}/{y}.png', { 
+			attribution: additional_attrib + 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data: &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors,<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
+		});	
+		basemap_0.addTo(map);	
+		var layerOrder=new Array();
+		function pop_appenddata(feature, layer) {					
+			var popupContent = '<table><tr><th scope="row">OBJECTID</th><td>' + Autolinker.link(String(feature.properties['OBJECTID'])) + '</td></tr><tr><th scope="row">Loc_name</th><td>' + Autolinker.link(String(feature.properties['Loc_name'])) + '</td></tr><tr><th scope="row">Status</th><td>' + Autolinker.link(String(feature.properties['Status'])) + '</td></tr><tr><th scope="row">Score</th><td>' + Autolinker.link(String(feature.properties['Score'])) + '</td></tr><tr><th scope="row">Match_type</th><td>' + Autolinker.link(String(feature.properties['Match_type'])) + '</td></tr><tr><th scope="row">X</th><td>' + Autolinker.link(String(feature.properties['X'])) + '</td></tr><tr><th scope="row">Y</th><td>' + Autolinker.link(String(feature.properties['Y'])) + '</td></tr><tr><th scope="row">Match_addr</th><td>' + Autolinker.link(String(feature.properties['Match_addr'])) + '</td></tr><tr><th scope="row">DISP_LON</th><td>' + Autolinker.link(String(feature.properties['DISP_LON'])) + '</td></tr><tr><th scope="row">DISP_LAT</th><td>' + Autolinker.link(String(feature.properties['DISP_LAT'])) + '</td></tr><tr><th scope="row">SIDE</th><td>' + Autolinker.link(String(feature.properties['SIDE'])) + '</td></tr><tr><th scope="row">ARC_Addres</th><td>' + Autolinker.link(String(feature.properties['ARC_Addres'])) + '</td></tr><tr><th scope="row">ARC_City</th><td>' + Autolinker.link(String(feature.properties['ARC_City'])) + '</td></tr><tr><th scope="row">ARC_State</th><td>' + Autolinker.link(String(feature.properties['ARC_State'])) + '</td></tr><tr><th scope="row">ARC_Zip</th><td>' + Autolinker.link(String(feature.properties['ARC_Zip'])) + '</td></tr><tr><th scope="row">Street</th><td>' + Autolinker.link(String(feature.properties['Street'])) + '</td></tr><tr><th scope="row">City</th><td>' + Autolinker.link(String(feature.properties['City'])) + '</td></tr><tr><th scope="row">State</th><td>' + Autolinker.link(String(feature.properties['State'])) + '</td></tr><tr><th scope="row">Zip</th><td>' + Autolinker.link(String(feature.properties['Zip'])) + '</td></tr><tr><th scope="row">Screens</th><td>' + Autolinker.link(String(feature.properties['Screens'])) + '</td></tr><tr><th scope="row">DN34_BUS</th><td>' + Autolinker.link(String(feature.properties['DN34_BUS'])) + '</td></tr><tr><th scope="row">DN34_SALES</th><td>' + Autolinker.link(String(feature.properties['DN34_SALES'])) + '</td></tr><tr><th scope="row">DN34_EMP</th><td>' + Autolinker.link(String(feature.properties['DN34_EMP'])) + '</td></tr></table>';
+			layer.bindPopup(popupContent);
+		}
+
+		var exp_appenddataJSON = new L.geoJson(exp_appenddata,{
+			onEachFeature: pop_appenddata,
+			pointToLayer: function (feature, latlng) {  
+				return L.circleMarker(latlng, {
+					radius: 4.0,
+					fillColor: '#0cc38c',
+					color: '#000000',
+					weight: 1,
+					opacity: 1.0,
+					fillOpacity: 1.0
+				})
+			}
+		});
+		//add comment sign to hide this layer on the map in the initial view.
+		feature_group.addLayer(exp_appenddataJSON);
+
+		feature_group.addTo(map);
+		var title = new L.Control();
+		title.onAdd = function (map) {
+			this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+			this.update();
+			return this._div;
+		};
+		title.update = function () {
+			this._div.innerHTML = '<h2>Landmark</h2>This is the subtitle'
+		};
+		title.addTo(map);
+	var baseMaps = {
+		'Stamen Toner': basemap_0
+	};
+		L.control.layers(baseMaps,{"appenddata": exp_appenddataJSON},{collapsed:false}).addTo(map);
+		L.control.scale({options: {position: 'bottomleft',maxWidth: 100,metric: true,imperial: false,updateWhenIdle: false}}).addTo(map);
+	</script>
+</body>
+</html>
